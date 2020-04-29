@@ -139,6 +139,8 @@ void sample_FFT() {
 }
 
 void tick_pitch_mode() {
+  switchToNextMode();
+  return;
   sample_FFT();
   long magnitude = CalcMagnitude(vReal, SAMPLES, 80, MAX_FREQUENCY);
   if (magnitude < 700) {
@@ -159,19 +161,20 @@ void tick_pitch_mode() {
     }
   }
   // Figure out how far we are away from a pitch
-#ifdef DEBUG
+//#ifdef DEBUG
   Serial.print("Peak freq: ");
   Serial.print(peak);
   Serial.print("\tDist: ");
   Serial.print(closestDist);
   Serial.println();
-#endif
-  if (distance < 5) { // if we are less than 5 hz off
-    RGB_color(0, 0, 255); // We're all good
+//#endif
+  if (closestDist < 15) { // if we are less than 5 hz off
+    Serial.print("You don't suck");
+    RGB_color(0, 255, 0); // We're all good
     return;
   }
   // TODO figure out if we need to go higher or lower
-  int distance_level = 255 * distance / 50; // if we are more than 50 hertz
+  int distance_level = 255 * closestDist / 50; // if we are more than 50 hertz
   RGB_color(distance_level, 0, 0);
 
 
@@ -180,29 +183,36 @@ void tick_pitch_mode() {
 void tick_sound_mode() {
   /*SAMPLING*/
   sample_FFT();
-  long magnitude = CalcMagnitude(vReal, SAMPLES, 80, MAX_FREQUENCY);
-  if (magnitude < 1000) {
+  long magnitude = CalcMagnitude(vReal, SAMPLES, 100, MAX_FREQUENCY);
+  if (magnitude < 900) {
     RGB_light(0);
     return; // just do nothing
   }
-  long lows = CalcMagnitude(vReal, SAMPLES, 60, 400);
-  long mids = CalcMagnitude(vReal, SAMPLES, 401, 2200);
-  long highs = CalcMagnitude(vReal, SAMPLES, 2201, MAX_FREQUENCY);
-  lows = lows < 1000 ? 0 : lows;
-  mids = mids < 700 ? 0 : mids;
-  highs = highs < 500 ? 0 : highs;
-#ifdef DEBUG
+  long lows = CalcMagnitude(vReal, SAMPLES, 100, 442);
+  long mids = CalcMagnitude(vReal, SAMPLES, 442, 2200);
+  long highs = CalcMagnitude(vReal, SAMPLES, 2200, MAX_FREQUENCY);
+  lows = lows < 300 ? 0 : lows;
+  mids = mids < 300 ? 0 : mids;
+  highs = highs < 250 ? 0 : highs;
+//#ifdef DEBUG
   Serial.print("LOW:");
   Serial.println(lows);
   Serial.print("MID:");
   Serial.println(mids);
   Serial.print("HIGH:");
   Serial.println(highs);
-#endif
+//#endif
   // TODO: do an EQ of the top frequencies?
-  int red =  255 * lows / 3000;
+  int red =  255 * (lows) / 2000;
   int green =  255 * mids / 2000;
-  int blue =  255 * highs / 1000;
+  int blue =  255 * highs / 1500;
+
+  Serial.print("R");
+  Serial.print(red);
+  Serial.print("G");
+  Serial.print(green);
+  Serial.print("B");
+  Serial.println(blue);
 
   RGB_color(red, green, blue);
   // Set PWM of the light to that
@@ -392,7 +402,7 @@ void print_rgb(RGBE rgb) {
   Serial.println();
 }
 
-void RGB_color(int red_light_value, int green_light_value, int blue_light_value) {
+void RGB_color(uint16_t red_light_value, uint16_t green_light_value, uint16_t blue_light_value) {
   rgb_target.red = (red_light_value > 255 ? 255 : red_light_value) * 4;
   rgb_target.green = (green_light_value > 255 ? 255 : green_light_value) * 4;
   rgb_target.blue = (blue_light_value > 255 ? 255 : blue_light_value) * 4;
