@@ -9,6 +9,7 @@
 enum Mode {
   LIGHT_SENSITIVE,
   SOUND_SENSITIVE,
+  PITCH_SENSITIVE,
   CAP_SENSITIVE, // Measure the capitance
   MOTION_SENSITIVE
 };
@@ -118,9 +119,7 @@ void tick_light_mode() {
   RGB_light(level);
 }
 
-void tick_sound_mode() {
-  /*SAMPLING*/
-
+void sample_FFT() {
   for (int i = 0; i < SAMPLES; i++)
   {
     microseconds = micros();    //Overflows after around 70 minutes!
@@ -137,6 +136,15 @@ void tick_sound_mode() {
   FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
   FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
   FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+}
+
+void tick_pitch_mode() {
+  sample_FFT();
+  long magnitude = CalcMagnitude(vReal, SAMPLES, 80, MAX_FREQUENCY);
+  if (magnitude < 700) {
+    RGB_light(0);
+    return;
+  }
   int peak = (int)round(FFT.MajorPeak(vReal, SAMPLES, SAMPLING_FREQUENCY));
 
   int distance = 0;
@@ -150,9 +158,6 @@ void tick_sound_mode() {
       closestFreq = pitches[i];
     }
   }
-  long magnitude = CalcMagnitude(vReal, SAMPLES, 80, MAX_FREQUENCY);
-  //Serial.print("Computed magnitude:");
-  //Serial.println(magnitude);
   // Figure out how far we are away from a pitch
 #ifdef DEBUG
   Serial.print("Peak freq: ");
@@ -161,6 +166,21 @@ void tick_sound_mode() {
   Serial.print(closestDist);
   Serial.println();
 #endif
+  if (distance < 5) { // if we are less than 5 hz off
+    RGB_color(0,0, 255); // We're all good
+    return;
+  }
+  // TODO figure out if we need to go higher or lower
+  int distance_level = 255 * distance / 50; // if we are more than 50 hertz
+  RGB_color(distance_level, 0, 0);
+  
+  
+}
+
+void tick_sound_mode() {
+  /*SAMPLING*/
+  sample_FFT();
+  long magnitude = CalcMagnitude(vReal, SAMPLES, 80, MAX_FREQUENCY);
   if (magnitude < 1000) {
     RGB_light(0);
     return; // just do nothing
@@ -249,13 +269,13 @@ void tick_cap_mode() {
   long value = CAP_STEP_RATE * (total - CAP_THRESHHOLD) / CAP_MAX + 1;
   cap_hue += value; // add to the hue
   if (cap_hue > 720) cap_hue = 0;
- #ifdef DEBUG
+#ifdef DEBUG
   Serial.print("Value: 0x");
   Serial.println(value, HEX);
   Serial.print("COLOR HUE: ");
   Serial.println(cap_hue);
- #endif
-  RGB new_color = {0,0,0};
+#endif
+  RGB new_color = {0, 0, 0};
   fast_hsv2rgb_8bit (cap_hue, HSV_SAT_MAX, HSV_VAL_MAX, &new_color.red, &new_color.green, &new_color.blue);
   RGB_color(new_color);
 }
@@ -266,6 +286,8 @@ Mode nextMode() {
     case LIGHT_SENSITIVE:
       return SOUND_SENSITIVE;
     case SOUND_SENSITIVE:
+      return PITCH_SENSITIVE;
+    case PITCH_SENSITIVE:
       return CAP_SENSITIVE;
     case CAP_SENSITIVE:
       return MOTION_SENSITIVE;
@@ -305,6 +327,9 @@ void loop() {
       break;
     case SOUND_SENSITIVE:
       tick_sound_mode();
+      break;
+    case PITCH_SENSITIVE:
+      tick_pitch_mode();
       break;
     case MOTION_SENSITIVE:
       tick_motion_mode();

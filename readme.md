@@ -2,6 +2,8 @@
 
 Made during the corona scare
 
+![alt text](circuit.jpg "The raw circuit on the breadboard")
+
 Includes:
 - Accelerometer
 - Microphone
