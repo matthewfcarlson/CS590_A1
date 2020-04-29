@@ -167,14 +167,14 @@ void tick_pitch_mode() {
   Serial.println();
 #endif
   if (distance < 5) { // if we are less than 5 hz off
-    RGB_color(0,0, 255); // We're all good
+    RGB_color(0, 0, 255); // We're all good
     return;
   }
   // TODO figure out if we need to go higher or lower
   int distance_level = 255 * distance / 50; // if we are more than 50 hertz
   RGB_color(distance_level, 0, 0);
-  
-  
+
+
 }
 
 void tick_sound_mode() {
@@ -374,7 +374,6 @@ void update_rgb_led() {
 }
 
 void print_rgb(RGB rgb) {
-
   Serial.print("RGB: ");
   Serial.print(rgb.red);
   Serial.print(", ");
@@ -384,7 +383,6 @@ void print_rgb(RGB rgb) {
   Serial.println();
 }
 void print_rgb(RGBE rgb) {
-
   Serial.print("RGBE: ");
   Serial.print(rgb.red / 4);
   Serial.print(", ");
@@ -398,12 +396,8 @@ void RGB_color(int red_light_value, int green_light_value, int blue_light_value)
   rgb_target.red = (red_light_value > 255 ? 255 : red_light_value) * 4;
   rgb_target.green = (green_light_value > 255 ? 255 : green_light_value) * 4;
   rgb_target.blue = (blue_light_value > 255 ? 255 : blue_light_value) * 4;
-  Serial.print("Set Target: ");
-  print_rgb(rgb_target);
 }
 void RGB_color(RGB target) {
-  Serial.print("Pre Target: ");
-  print_rgb(target);
   RGB_color(target.red, target.green, target.blue);
 }
 
