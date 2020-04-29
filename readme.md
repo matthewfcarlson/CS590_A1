@@ -27,3 +27,8 @@ The nightlight has five modes:
  The more you touch it, the faster it spins.
 5. Motion sensitive
  When you tap it, it toggles on and off.
+
+ # Finished Product?
+
+![alt text](lamp.jpg "With the mason jar on top")
+

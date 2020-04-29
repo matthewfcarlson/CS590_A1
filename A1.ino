@@ -188,8 +188,8 @@ void tick_sound_mode() {
     RGB_light(0);
     return; // just do nothing
   }
-  long lows = CalcMagnitude(vReal, SAMPLES, 100, 442);
-  long mids = CalcMagnitude(vReal, SAMPLES, 442, 2200);
+  long lows = CalcMagnitude(vReal, SAMPLES, 100, 452);
+  long mids = CalcMagnitude(vReal, SAMPLES, 452, 2200);
   long highs = CalcMagnitude(vReal, SAMPLES, 2200, MAX_FREQUENCY);
   lows = lows < 300 ? 0 : lows;
   mids = mids < 300 ? 0 : mids;
@@ -203,7 +203,7 @@ void tick_sound_mode() {
   Serial.println(highs);
 //#endif
   // TODO: do an EQ of the top frequencies?
-  int red =  255 * (lows) / 2000;
+  int red =  255 * (lows) / 1000;
   int green =  255 * mids / 2000;
   int blue =  255 * highs / 1500;
 
